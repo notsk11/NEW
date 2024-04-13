@@ -1,103 +1,97 @@
-#@title main.py
+# /content/app.py
+
 import gradio as gr
-from diffusers import EulerDiscreteScheduler, EulerAncestralDiscreteScheduler, LMSDiscreteScheduler, DPMSolverSinglestepScheduler, KDPM2DiscreteScheduler, DPMSolverMultistepScheduler
-from modules.txt2img import load_diffusion_pipeline, generate_images
+import numpy as np
+from PIL import Image
+from diffusers import DiffusionPipeline
+import torch
+from modules import txt2img
+from modules.txt2img import txt2img
+from modules import pipeline
+from modules.pipeline import load_pipeline_global
 from modules import style
 from modules.style import css
-scheduler_choices = {
-    "Euler": EulerDiscreteScheduler.from_config,
-    "Euler a": EulerAncestralDiscreteScheduler.from_config,
-    "LMS": LMSDiscreteScheduler.from_config,
-    "DPM++ 2M": DPMSolverMultistepScheduler.from_config,
-    "DPM++ SDE": DPMSolverSinglestepScheduler.from_config,
-    "LMS Karras": lambda config, use_karras_sigmas=True: LMSDiscreteScheduler.from_config(config, use_karras_sigmas=use_karras_sigmas),
-    "DPM2 Karras": lambda config, use_karras_sigmas=True: KDPM2DiscreteScheduler.from_config(config, use_karras_sigmas=use_karras_sigmas),
-    "DPM++ 2M Karras": lambda config, use_karras_sigmas=True: DPMSolverMultistepScheduler.from_config(config, use_karras_sigmas=use_karras_sigmas),
-    "DPM++ SDE Karras": lambda config, use_karras_sigmas=True: DPMSolverSinglestepScheduler.from_config(config, use_karras_sigmas=use_karras_sigmas),
-    "DPM++ 2M SDE": lambda config, use_karras_sigmas=False: DPMSolverMultistepScheduler.from_config(config, use_karras_sigmas=use_karras_sigmas, algorithm_type='sde-dpmsolver++'),
-    "DPM++ 2M SDE Karras": lambda config, use_karras_sigmas=True: DPMSolverMultistepScheduler.from_config(config, use_karras_sigmas=use_karras_sigmas, algorithm_type='sde-dpmsolver++'),
+
+from diffusers import (
+    PNDMScheduler,
+    DEISMultistepScheduler,
+    UniPCMultistepScheduler,
+    EulerDiscreteScheduler,
+    EulerAncestralDiscreteScheduler,
+    LMSDiscreteScheduler,
+    KDPM2DiscreteScheduler,
+    KDPM2AncestralDiscreteScheduler,
+    DPMSolverSinglestepScheduler,
+    DPMSolverMultistepScheduler,
+)
+
+# Define a dictionary to map scheduler names to their constructors
+scheduler_constructors = {
+    "PNDM": PNDMScheduler.from_pretrained,
+    "DEIS": DEISMultistepScheduler.from_pretrained,
+    "UniPC": UniPCMultistepScheduler.from_pretrained,
+    "Euler": EulerDiscreteScheduler.from_pretrained,
+    "Euler A": EulerAncestralDiscreteScheduler.from_pretrained,
+    "LMS": LMSDiscreteScheduler.from_pretrained,
+    "LMS-Karras": LMSDiscreteScheduler.from_pretrained,
+    "DPM2": KDPM2DiscreteScheduler.from_pretrained,
+    "DPM2-Karras": KDPM2DiscreteScheduler.from_pretrained,
+    "DPM2-A": KDPM2AncestralDiscreteScheduler.from_pretrained,
+    "DPM2-A-Karras": KDPM2AncestralDiscreteScheduler.from_pretrained,
+    "DPM-SDE": DPMSolverSinglestepScheduler.from_pretrained,
+    "DPM-SDE-Karras": DPMSolverSinglestepScheduler.from_pretrained,
+    "DPM-2M": DPMSolverMultistepScheduler.from_pretrained,
+    "DPM-2M-Karras": DPMSolverMultistepScheduler.from_pretrained,
+    "DPM-2M-SDE": DPMSolverMultistepScheduler.from_pretrained,
+    "DPM-2M-SDE-Karras": DPMSolverMultistepScheduler.from_pretrained,
 }
 
-modelnames = [
-    ("digiplay/Realisian_v5", "digiplay/Realisian_v5"),
-    ("SG161222/Realistic_Vision_V6.0_B1_noVAE", "SG161222/Realistic_Vision_V6.0_B1_noVAE"),
-    ("segmind/SSD-1B", "segmind/SSD-1B"),
-    ("digiplay/RealEpicMajicRevolution_v1", "digiplay/RealEpicMajicRevolution_v1"),
-    ("imagepipeline/Realities-Edge-XL", "imagepipeline/Realities-Edge-XL"),
-    ("stablediffusionapi/realisian111", "stablediffusionapi/realisian111")
-]
 
-pipeline = None  # Initialize pipeline globally
-
-def load_model(models_id):
-    global pipeline
-    pipeline = load_diffusion_pipeline(models_id)
-    pipeline.safety_checker = None
-
-image_info_textbox = gr.Textbox(label="Image Info")  # Create the Textbox component
-textbox_holder = [image_info_textbox]
-
-def create_callback():
-    def generate_images_callback(prompt_str, neg_prompt_str, height_int, width_int, num_steps_int, guid_scale_float, num_images_int, seed_int, scheduler_choice):
-        global pipeline
-        images, seed, scheduler = generate_images(pipeline, prompt_str, neg_prompt_str, height_int, width_int, num_steps_int, guid_scale_float, num_images_int, seed_int, scheduler_choice)
-        image_data = {
-            "prompt": prompt_str,
-            "negative_prompt": neg_prompt_str,
-            "seed": seed,
-            "scheduler": pipeline.scheduler
-        }
-        image_info_textbox = update_image_info(textbox_holder[0], image_data)  # Access the textbox from the list
-        textbox_holder[0] = image_info_textbox  # Update the textbox in the list
-        return images, textbox_holder[0]  # Return the new Textbox
-    return generate_images_callback
+def update_scheduler(scheduler_name):
+    if scheduler_name in scheduler_constructors:
+        # Get the constructor function for the selected scheduler
+        constructor = scheduler_constructors[scheduler_name]
+        # Load the scheduler using the constructor
+        pipeline.scheduler = constructor("notsk007/" + scheduler_name)
+        return f"Successfully updated scheduler to {scheduler_name}."
+    else:
+        return f"Scheduler '{scheduler_name}' not found."
 
 
-def load_model_callback(models_id):
-    load_model(models_id)
-
-def update_image_info(image_info_textbox, image_data):
-    # Convert image_data to string
-    image_data_str = str(image_data)
-    new_textbox = gr.Textbox(value=image_data_str)  # Create a new Textbox
-    return new_textbox
-
+def call_pipeline():
+    pipeline.load_pipeline_global()
 
 with gr.Blocks(css=style.css) as demo:
-  gr.Markdown("Stable Diffusion")
-  image_output_block = gr.Gallery(elem_classes="image")
-  prompt_str = gr.Textbox(placeholder="Prompt", lines=2, container=False, elem_classes="prompt")
-  neg_prompt_str = gr.Textbox(placeholder="Negative Prompt", lines=2, container=False, elem_classes="neg-prompt")
-  height_int = gr.Slider(minimum=408, maximum=1600, value=408, step=8, container=False, elem_classes="height")
-  gr.Markdown("Height", elem_classes="height-mark")
-  width_int = gr.Slider(minimum=408, maximum=1600, value=408, step=8, container=False, elem_classes="width")
-  gr.Markdown("Width", elem_classes="width-mark")
-  generate = gr.Button("Generate", elem_classes="gen")
-
-  with gr.Tab("Txt2Img", elem_classes="tab"):
-    with gr.Group():
+  with gr.Tab("Txt2Img", elem_classes="tab-t2i"):
+    with gr.Column():
       with gr.Column():
-         load_model_button = gr.Button("Load Model", elem_classes="load")
+        prompt_t2i = gr.Textbox(elem_classes="prompt-t2i", lines=2, container=False, placeholder="Place Prompts here....")
+        negative_prompt_t2i = gr.Textbox(elem_classes="negative-prompt-t2i", lines=2, container=False, placeholder="Place Negative Prompts here....")
       with gr.Row():
-          load_model_button.click(load_model_callback, inputs=[gr.Dropdown(choices=modelnames, elem_classes="model", value="stablediffusionapi/realisian111")])
-          schedulers = gr.Dropdown(label="Sampling Methods", elem_classes="model", choices=scheduler_choices)
+        height_t2i = gr.Slider(elem_classes="height-t2i", label="Height", minimum=408, maximum=1600, value=408, step=8)
+        width_t2i = gr.Slider(elem_classes="width-t2i", label="Width", minimum=408, maximum=1600, value=408, step=8)
       with gr.Row():
-        num_steps_int = gr.Slider(label="Sampling Steps", minimum=1, maximum=100, value=10, step=1, container=True, elem_classes="model")
-        guid_scale_float = gr.Slider(label="CFG Scale", minimum=1, maximum=10, value=5, step=0.1, container=True, elem_classes="model")
+        num_inference_steps_t2i = gr.Slider(elem_classes="num-steps-t2i", label="Sampling Steps", minimum=1, maximum=100, value=20, step=1, scale=8)
+        guidance_scale_t2i = gr.Slider(elem_classes="guidance-scale-t2i", label="CFG Scale", minimum=0, maximum=10, value=7.5, step=0.1, scale=5)
       with gr.Row():
-        num_images_int = gr.Slider(label="Batch Count", minimum=1, maximum=10, value=1, step=1, container=True, elem_classes="model")
+        batch_size_t2i = gr.Slider(elem_classes="batch-size-t2i", label="Batch Size", minimum=1, maximum=10, value=1, step=1)
+      with gr.Row():
+        seed_inp = gr.Textbox(elem_classes="seed-input-t2i", lines=1, container=False, placeholder="Place Seed here....")
+    with gr.Row():
       with gr.Column():
-        seed_inp = gr.Textbox(label="Seed", elem_classes="model")
-      with gr.Accordion(label="Details", open=False):
-        image_info_textbox = gr.Textbox(show_label=False, placeholder="Info about generated image", elem_classes="details", lines=10)
-  with gr.Tab("Img2Img", elem_classes="tab"):
-    num_images = gr.Slider(minimum=1, maximum=1, value=1, step=1, container=False)
-  with gr.Tab("Img2Vid", elem_classes="tab"):
-    num_images = gr.Slider(minimum=1, maximum=1, value=1, step=1, container=False)
-  with gr.Tab("UpScale", elem_classes="tab"):
-    num_images = gr.Slider(minimum=1, maximum=1, value=1, step=1, container=False)
+        model_global = gr.Textbox(elem_classes="model_global", label="Model", value="SG161222/Realistic_Vision_V6.0_B1_noVAE", scale=9)
+        scheduler = gr.Dropdown(choices=list(scheduler_constructors.keys()), label="Sampling Method", scale=8)
+      generate_t2i = gr.Button("Generate", elem_classes="generate-t2i", scale=3)
+      with gr.Column():
+        load_model_global = gr.Button("Load Model", elem_classes="load-model-gloabl", scale=1)
+        load_scheduler = gr.Button("Load Scheduler", scale=1)
+  with gr.Column():
+    image_out_t2i = gr.Gallery(elem_classes="image-out-t2i")
+    metadata_t2i = gr.Textbox(elem_classes="metadata-t2i", lines=5, container=False, placeholder="Data about generated image here....")
 
-  callback = create_callback()  # Create the callback
-  generate.click(fn=callback, inputs=[prompt_str, neg_prompt_str, height_int, width_int, num_steps_int, guid_scale_float, num_images_int, seed_inp, schedulers], outputs=[image_output_block, image_info_textbox])
+
+    load_model_global.click(fn=call_pipeline)
+    load_scheduler.click(fn=update_scheduler, inputs=[scheduler])
+    generate_t2i.click(fn=txt2img, inputs=[prompt_t2i, negative_prompt_t2i, height_t2i, width_t2i, num_inference_steps_t2i, guidance_scale_t2i, batch_size_t2i, seed_inp], outputs=[image_out_t2i, metadata_t2i])
 
 demo.launch(share=True, debug=True)
