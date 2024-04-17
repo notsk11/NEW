@@ -2,10 +2,9 @@
 from diffusers import DiffusionPipeline
 
 pipeline = None
-
-def load_pipeline_global():
+scheduler = None  # Add this line to define the scheduler attribute
+def load_pipeline_global(model_id):
   global pipeline
-  model_id = "stablediffusionapi/realisian111"
   pipeline = DiffusionPipeline.from_pretrained(model_id).to('cuda')
   pipeline.safety_checker = None
   return pipeline
