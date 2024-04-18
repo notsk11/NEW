@@ -11,7 +11,8 @@ from modules import pipeline
 from modules.pipeline import load_pipeline_global
 from modules import style
 from modules.style import css
-
+from modules.scheduler import update_scheduler  # Import update_scheduler from scheduler module
+from modules.scheduler import scheduler_constructors
 from diffusers import (
     PNDMScheduler,
     DEISMultistepScheduler,
@@ -25,38 +26,8 @@ from diffusers import (
     DPMSolverMultistepScheduler,
 )
 
-# Define a dictionary to map scheduler names to their constructors
-scheduler_constructors = {
-    "PNDM": PNDMScheduler.from_pretrained,
-    "DEIS": DEISMultistepScheduler.from_pretrained,
-    "UniPC": UniPCMultistepScheduler.from_pretrained,
-    "Euler": EulerDiscreteScheduler.from_pretrained,
-    "Euler A": EulerAncestralDiscreteScheduler.from_pretrained,
-    "LMS": LMSDiscreteScheduler.from_pretrained,
-    "LMS-Karras": LMSDiscreteScheduler.from_pretrained,
-    "DPM2": KDPM2DiscreteScheduler.from_pretrained,
-    "DPM2-Karras": KDPM2DiscreteScheduler.from_pretrained,
-    "DPM2-A": KDPM2AncestralDiscreteScheduler.from_pretrained,
-    "DPM2-A-Karras": KDPM2AncestralDiscreteScheduler.from_pretrained,
-    "DPM-SDE": DPMSolverSinglestepScheduler.from_pretrained,
-    "DPM-SDE-Karras": DPMSolverSinglestepScheduler.from_pretrained,
-    "DPM-2M": DPMSolverMultistepScheduler.from_pretrained,
-    "DPM-2M-Karras": DPMSolverMultistepScheduler.from_pretrained,
-    "DPM-2M-SDE": DPMSolverMultistepScheduler.from_pretrained,
-    "DPM-2M-SDE-Karras": DPMSolverMultistepScheduler.from_pretrained,
-}
 
-
-def update_scheduler(scheduler_name):
-    if scheduler_name in scheduler_constructors:
-        # Get the constructor function for the selected scheduler
-        constructor = scheduler_constructors[scheduler_name]
-        # Load the scheduler using the constructor
-        pipeline.scheduler = constructor("notsk007/" + scheduler_name)
-        return f"Successfully updated scheduler to {scheduler_name}. Scheduler value: {pipeline.scheduler}"
-    else:
-        return f"Scheduler '{scheduler_name}' not found."
-
+# Rest of your app code remains the same
 
 
 
