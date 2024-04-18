@@ -33,12 +33,5 @@ def txt2img(prompt_t2i, negative_prompt_t2i, height_t2i, width_t2i, num_inferenc
     images_pil = [Image.fromarray(img_np) for img_np in images_np]
 
     # Construct metadata string
-    metadata_str = f"Prompt: {prompt_t2i}\n"
-    metadata_str += f"Negative Prompt: {negative_prompt_t2i}\n"
-    metadata_str += f"Height: {height_t2i}\n"
-    metadata_str += f"Width: {width_t2i}\n"
-    metadata_str += f"Num Inference Steps: {num_inference_steps_t2i}\n"
-    metadata_str += f"Guidance Scale: {guidance_scale_t2i}\n"
-    metadata_str += f"Seed: {seed}\n"
+    metadata_str = f" Seed: {seed}, Prompt: {prompt_t2i}, Negative Prompt: {negative_prompt_t2i}, Height: {height_t2i}, Width: {width_t2i}, Num Inference Steps: {num_inference_steps_t2i}, Guidance Scale: {guidance_scale_t2i}"
     return images_pil, metadata_str
-
