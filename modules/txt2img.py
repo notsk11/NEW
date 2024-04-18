@@ -1,5 +1,5 @@
 # /content/modules/txt2img.py
-from app import update_scheduler
+from modules import scheduler  # Importing the scheduler module
 import gradio as gr
 import numpy as np
 from PIL import Image
@@ -10,6 +10,10 @@ from modules import pipeline as pipe_module
 from modules.pipeline import load_pipeline_global
 import random
 import sys
+
+# Remove the import of update_scheduler from scheduler.py
+# You can directly call the function from the scheduler module
+
 def txt2img(prompt_t2i, negative_prompt_t2i, height_t2i, width_t2i, num_inference_steps_t2i, guidance_scale_t2i, batch_size_t2i, seed_int="", scheduler=None):
     if seed_int == "":
         seed = random.randint(0, sys.maxsize)
@@ -42,5 +46,3 @@ def txt2img(prompt_t2i, negative_prompt_t2i, height_t2i, width_t2i, num_inferenc
     metadata_str += f"Scheduler: {pipeline.scheduler}\n"
 
     return images_pil, metadata_str
-
-
