@@ -46,7 +46,7 @@ with gr.Blocks(css=style.css) as demo:
           load_scheduler_t2i = gr.Button(value="Load", elem_classes="load-scheduler-t2i")
         with gr.Column():
           gr.Markdown("Sampling Steps", elem_classes="samp-steps-mark")
-          num_inference_steps_t2i = gr.Slider(elem_classes="samp-steps", minimum=1, maximum=100, value=10, step=1, container=False)
+          num_inference_steps_t2i = gr.Slider(elem_classes="samp-steps", minimum=1, maximum=100, value=25, step=1, container=False)
         with gr.Column():
           image_out_t2i = gr.Gallery(elem_classes="image-output-t2i")
       with gr.Row():
@@ -62,9 +62,10 @@ with gr.Blocks(css=style.css) as demo:
           batch_size = gr.Slider(elem_classes="batch-size-t2i", minimum=1, maximum=10, value=1, step=1, container=False)
       with gr.Column():
         gr.Markdown("CFG Scale", elem_classes="guidance-scale-t2i-mark")
-        guidance_scale_t2i = gr.Slider(elem_classes="guidance-scale-t2i", minimum=0, maximum=10, value=7.5, step=0.1, container=False)
+        guidance_scale_t2i = gr.Slider(elem_classes="guidance-scale-t2i", minimum=0, maximum=10, value=4, step=0.1, container=False)
         gr.Markdown("Seed", elem_classes="seed-input-t2i-mark")
         seed_input_t2i = gr.Textbox(elem_classes="seed-input-t2i", container=False)
+      with gr.Accordion(elem_classes="accor", label="Metadata", open=False):
         metadata_t2i = gr.Textbox(elem_classes="metadata-t2i", container=False, lines=10, show_copy_button=True)
       load_model_global.click(fn=load_pipeline, inputs=[model_global])
       load_scheduler_t2i.click(fn=update_scheduler, inputs=[scheduler])
