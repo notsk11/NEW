@@ -5,6 +5,12 @@ div.gradio-container{
 .stable-diff {
   top: -13px;
 }
+.tab {
+  height: 840px !important;
+}
+.tab2 {
+  height: 600px !important;
+}
 .model {
   width: 300px;
   top: 9px;
