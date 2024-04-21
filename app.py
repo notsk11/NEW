@@ -8,6 +8,7 @@ from modules.txt2img import txt2img
 from modules.pipeline import load_pipeline
 from modules.pipeline import update_scheduler
 
+
 with gr.Blocks(css=style.css) as demo:
   gr.Markdown("Stable Diffusion Checkpoint", elem_classes="stable-diff")
   with gr.Row():
@@ -48,7 +49,7 @@ with gr.Blocks(css=style.css) as demo:
           gr.Markdown("Sampling Steps", elem_classes="samp-steps-mark")
           num_inference_steps_t2i = gr.Slider(elem_classes="samp-steps", minimum=1, maximum=100, value=25, step=1, container=False)
         with gr.Column():
-          image_out_t2i = gr.Gallery(elem_classes="image-output-t2i")
+          image_output_t2i = gr.Gallery(elem_classes="image-output-t2i")
       with gr.Row():
         with gr.Column():
           gr.Markdown("Height", elem_classes="height-t2i-mark")
@@ -65,11 +66,13 @@ with gr.Blocks(css=style.css) as demo:
         guidance_scale_t2i = gr.Slider(elem_classes="guidance-scale-t2i", minimum=0, maximum=10, value=4, step=0.1, container=False)
         gr.Markdown("Seed", elem_classes="seed-input-t2i-mark")
         seed_input_t2i = gr.Textbox(elem_classes="seed-input-t2i", container=False)
-      with gr.Accordion(elem_classes="accor", label="Metadata", open=False):
+      with gr.Accordion(elem_classes="metadata-t2i-accordion", label="Metadata", open=False):
         metadata_t2i = gr.Textbox(elem_classes="metadata-t2i", container=False, lines=10, show_copy_button=True)
+      with gr.Accordion(elem_classes="zoom-t2i-accordion",label="Zoomed", open=False):
+        image_output_zoom_t2i = gr.Gallery(elem_classes="image-output-zoomed-t2i", container=True, interactive=True)
       load_model_global.click(fn=load_pipeline, inputs=[model_global])
       load_scheduler_t2i.click(fn=update_scheduler, inputs=[scheduler])
-      generate_t2i.click(fn=txt2img, inputs=[prompt_t2i, negative_prompt_t2i, height_t2i, width_t2i, num_inference_steps_t2i, guidance_scale_t2i, batch_count_t2i, seed_input_t2i], outputs=[image_out_t2i, metadata_t2i])
+      generate_t2i.click(fn=txt2img, inputs=[prompt_t2i, negative_prompt_t2i, height_t2i, width_t2i, num_inference_steps_t2i, guidance_scale_t2i, batch_count_t2i, seed_input_t2i], outputs=[image_output_t2i, image_output_zoom_t2i, metadata_t2i])
 
 
 demo.launch(share=True, debug=True)
