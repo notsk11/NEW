@@ -34,4 +34,4 @@ def txt2img(prompt_t2i, negative_prompt_t2i, height_t2i, width_t2i, num_inferenc
 
     # Construct metadata string
     metadata_str = f" Seed: {seed}, Prompt: {prompt_t2i}, Negative Prompt: {negative_prompt_t2i}, Height: {height_t2i}, Width: {width_t2i}, Num Inference Steps: {num_inference_steps_t2i}, Guidance Scale: {guidance_scale_t2i}"
-    return images_pil, metadata_str
+    return images_pil, images_pil, metadata_str
