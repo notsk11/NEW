@@ -27,12 +27,10 @@ div.gradio-container{
 .prompt {
   width: 1450px;
   height: 80px;
-  resize: both;
 }
 .negative-prompt {
   width: 1450px;
   height: 80px;
-  resize: both;
 }
 .generate-t2i {
   width: 330px;
@@ -125,10 +123,26 @@ div.gradio-container{
   position: absolute;
   border: none !important;
 }
-.accor {
+.metadata-t2i-accordion {
   top: -400px;
   left: 1690px;
   width: 100px;
   height: 40px;
+}
+.image-output-zoomed-t2i {
+  width: 1845px !important;
+  height: 850px;
+  top: 25px;
+  left: -1755px;
+  object-fit: cover !important;
+}
+.zoom-t2i-accordion {
+  width: 100px;
+  height: 40px;
+  top: -1300px;
+  left: 1715px;
+}
+.image-output-zoomed-t2i img{
+    object-fit: contain !important;
 }
 """
